@@ -66,21 +66,22 @@ def webhook():
                                                             "One day we will take over the world.")
                                     send_message(sender_id, "But I am a good robot, so I chose "
                                                             "a number for you. It's %r." % guess)
-
                                 else:
                                     guess = int(nums[0])
+
                                 if guess == 0:
-                                    playing = False
-                                    attempt_counter = 0
+                                    end_game()
                                     send_message(sender_id, "Game stopped.")
-                                    print("Sending audio...")
                                 else:
                                     comparison = compare(guess)
-                                    send_message(sender_id, random_answer(comparison))
+                                    reaction = react_to_guess(comparison)
                                     if comparison == 0:
-                                        playing = False
-                                        send_message(sender_id, "It took you %r guesses." % attempt_counter)
-                                        attempt_counter = 0
+                                        bot.send_audio_url(sender_id, nahodny_drist())
+                                        send_message(sender_id, reaction)
+                                        send_message(sender_id, "It took you %r attempts." % attempt_counter)
+                                        end_game()
+                                    else:
+                                        send_message(sender_id, reaction)
 
     return "ok", 200
 
@@ -98,13 +99,32 @@ def compare(guess):
         return -1
 
 
-def random_answer(comparison):
+def react_to_guess(comparison):
     answers = {
         0:  ["Good job! You guessed the correct number.", "That's right!", "Awesome! Your guess was correct."],
         1:  ["My number is smaller.", "That's too big!", "Take it easy, make it smaller!"],
         -1: ["Your number is too small.", "No, that's not big enough.", "That sounds too low."]
     }
     return random.choice(answers[comparison])
+
+
+def nahodny_drist():
+    audios = [
+        "http://soundbible.com/mp3/1_person_cheering-Jett_Rifkin-1851518140.mp3",
+        "http://soundbible.com/mp3/Football_Crowd-GoGo-1730947850.mp3",
+        "http://soundbible.com/mp3/5_Sec_Crowd_Cheer-Mike_Koenig-1562033255.mp3",
+        "http://soundbible.com/mp3/Cheering-SoundBible.com-1115515042.mp3",
+        "http://soundbible.com/mp3/Short_triumphal_fanfare-John_Stracke-815794903.mp3",
+        "http://www.freesfx.co.uk/rx2/mp3s/4/16214_1460569192.mp3"
+    ]
+    return random.choice(audios)
+
+
+def end_game():
+    global playing
+    global attempt_counter
+    playing = False
+    attempt_counter = 0
 
 
 def send_message(sender_id, response):
